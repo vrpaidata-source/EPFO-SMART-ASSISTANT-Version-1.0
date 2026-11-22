@@ -3,9 +3,10 @@
 <html lang="ta">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#123b75">
-<title>PF Tracker - VRPAIData</title>
+<title>VRPAIData - PF & Pension Tracker</title>
+
 <style>
 *{box-sizing:border-box}
 body{
@@ -16,7 +17,7 @@ header{
  background:linear-gradient(135deg,#123b75,#1976d2);
  color:white;padding:22px;border-radius:0 0 22px 22px;
 }
-main{padding:16px;max-width:600px;margin:auto}
+main{padding:15px;max-width:600px;margin:auto}
 .card{
  background:white;padding:18px;margin:14px 0;
  border-radius:16px;box-shadow:0 3px 12px #0001;
@@ -30,60 +31,87 @@ input,select{
 button{
  width:100%;padding:14px;border:0;border-radius:10px;
  background:#1769c2;color:white;font-size:15px;
- margin-top:14px;
+ margin-top:13px;
+}
+.result{
+ background:#eaf5ff;padding:15px;border-radius:12px;
+ margin-top:15px;line-height:1.8;
 }
 .total{
  font-size:27px;font-weight:bold;color:#16834a;
- text-align:center;padding:15px;
+ text-align:center;padding:10px;
 }
-.small{font-size:12px;color:#68758a;line-height:1.6}
+.small{font-size:12px;color:#68758a;line-height:1.7}
 .item{
- background:#f1f5fb;padding:12px;border-radius:10px;
- margin-top:10px;font-size:14px;
+ background:#f1f5fb;padding:13px;border-radius:10px;
+ margin-top:12px;font-size:14px;line-height:1.8;
 }
-.delete{background:#b52d35;padding:8px;margin-top:8px}
-a{color:#1769c2}
+.delete{background:#b52d35;padding:9px}
+.edit{background:#16834a;padding:9px}
+.secondary{background:#65748b}
+.status{font-weight:bold;color:#1769c2}
+footer{text-align:center;font-size:12px;padding:20px}
 </style>
 </head>
+
 <body>
 
 <header>
-<h2>💰 VRPAIData – PF TRACKER</h2>
-<p>PF Balance & Claim Status</p>
+<h2>💰 VRPAIData</h2>
+<p>EPFO PF • EPS Pension • Claim Reminder</p>
 </header>
 
 <main>
 
+<!-- PENSION CALCULATOR -->
 <div class="card">
-<h2>📊 PF Balance Tracker</h2>
+<h2>🧮 EPS Pension Calculator</h2>
+
+<label>Pensionable Salary (₹ / மாதம்)</label>
+<input type="number" id="salary" min="0"
+placeholder="உதா: 15000">
+
+<label>Pensionable Service (ஆண்டுகள்)</label>
+<input type="number" id="years" min="0"
+max="50" step="1" placeholder="உதா: 20">
+
+<button onclick="calculatePension()">
+Calculate Monthly Pension
+</button>
+
+<div id="pensionResult"></div>
+
+<p class="small">
+அடிப்படை சூத்திரம்: Salary × Service ÷ 70.
+சாதாரண wage ceiling ₹15,000. Higher Pension
+தகுதியுள்ளவர்களுக்கு விதிகள் வேறுபடலாம்.
+EPFO கணக்கீடே இறுதியானது.
+</p>
+</div>
+
+<!-- PF BALANCE -->
+<div class="card">
+<h2>📊 PF Balance Calculator</h2>
 
 <label>Employee Share (₹)</label>
-<input type="number" id="employee" min="0" placeholder="உதா: 25000">
+<input type="number" id="employee" min="0" placeholder="Employee Share">
 
-<label>Employer Share (₹)</label>
-<input type="number" id="employer" min="0" placeholder="உதா: 12000">
+<label>Employer EPF Share (₹)</label>
+<input type="number" id="employer" min="0" placeholder="Employer EPF Share">
 
-<label>Pension Share (₹)</label>
-<input type="number" id="pension" min="0" placeholder="உதா: 8000">
+<button onclick="calculatePF()">Calculate PF Total</button>
 
-<button onclick="calculate()">Calculate PF Balance</button>
+<div id="pfResult" class="total">₹0</div>
 
-<div class="total" id="total">₹0.00</div>
 <p class="small">
-இது நீங்கள் உள்ளிடும் தொகைகளின் கணக்கு மட்டுமே.
-உண்மையான PF Balance-ஐ EPFO Passbook-ல் சரிபார்க்கவும்.
+EPS Pension Share தனி PF Withdrawal Balance அல்ல.
+PF Total கணக்கில் EPS தொகையை சேர்க்க வேண்டாம்.
 </p>
-
 </div>
 
+<!-- CLAIM REMINDER -->
 <div class="card">
-<h2>📘 Official PF Passbook</h2>
-<p class="small">உங்கள் உண்மையான PF விவரங்களை அதிகாரப்பூர்வ EPFO தளத்தில் பார்க்கவும்.</p>
-<button onclick="openPF()">Open EPFO Passbook</button>
-</div>
-
-<div class="card">
-<h2>📋 Claim Status Tracker</h2>
+<h2>📋 Claim Reminder</h2>
 
 <label>Claim Type</label>
 <select id="claimType">
@@ -96,6 +124,10 @@ a{color:#1769c2}
 <label>Application Date</label>
 <input type="date" id="claimDate">
 
+<label>Claim Reference (Optional)</label>
+<input type="text" id="claimRef"
+placeholder="உங்கள் Claim Reference">
+
 <label>Current Status</label>
 <select id="claimStatus">
 <option>Submitted</option>
@@ -105,49 +137,100 @@ a{color:#1769c2}
 <option>Rejected</option>
 </select>
 
-<button onclick="addClaim()">Save Claim Status</button>
+<button onclick="saveClaim()">
+Save Claim + 2 Day Reminder
+</button>
 
+<p class="small">
+Claim பதிவு செய்த தேதியிலிருந்து 2 நாட்கள் கழித்து
+App திறக்கும்போது Reminder காட்டப்படும்.
+Notification அனுமதி வழங்க வேண்டும்.
+</p>
+</div>
+
+<!-- CLAIM HISTORY -->
+<div class="card">
+<h2>📚 Claim History</h2>
 <div id="claims"></div>
+</div>
 
-<button onclick="openClaim()">Check Official Claim Status</button>
+<!-- OFFICIAL PORTAL -->
+<div class="card">
+<h2>🏛️ Official EPFO Services</h2>
+
+<button onclick="openPage('https://passbook.epfindia.gov.in/')">
+PF Passbook
+</button>
+
+<button onclick="openPage('https://unifiedportal-mem.epfindia.gov.in/memberinterface/')">
+Member Login
+</button>
+
+<button onclick="openPage('https://epfigms.gov.in/')">
+EPFO Grievance
+</button>
 </div>
 
 <p class="small">
-🔐 பாதுகாப்பு: UAN, Password, OTP, Aadhaar அல்லது Bank விவரங்களை இங்கு உள்ளிட வேண்டாம். Tracker விவரங்கள் இந்த Browser-ன் Local Storage-ல் மட்டும் சேமிக்கப்படும். பகிரப்பட்ட மொபைலில் இதைப் பயன்படுத்த வேண்டாம்.
+🔐 பாதுகாப்பு: UAN, Password, OTP, Aadhaar,
+Bank விவரங்களை இங்கு சேமிக்க வேண்டாம்.
+Claim பதிவுகள் இந்த Browser-ன் Local Storage-ல்
+மட்டுமே சேமிக்கப்படும்.
 </p>
 
 </main>
 
-<script>
-function calculate(){
- const e=Number(document.getElementById("employee").value)||0;
- const r=Number(document.getElementById("employer").value)||0;
- const p=Number(document.getElementById("pension").value)||0;
+<footer>
+VRPAIData • EPFO SMART ASSISTANT<br>
+Independent Utility Application
+</footer>
 
- if(e<0||r<0||p<0){
-  alert("சரியான தொகையை உள்ளிடவும்");
+<script>
+
+// PENSION CALCULATOR
+function calculatePension(){
+
+ const salary=Number(document.getElementById("salary").value);
+ const years=Number(document.getElementById("years").value);
+ const box=document.getElementById("pensionResult");
+
+ if(!Number.isFinite(salary)||!Number.isFinite(years)||
+ salary<=0||years<=0||years>50){
+  box.innerHTML="சரியான Salary மற்றும் Service உள்ளிடவும்.";
   return;
  }
 
- const total=e+r+p;
- document.getElementById("total").innerText=
- "₹"+total.toLocaleString("en-IN",{minimumFractionDigits:2});
+ const pension=(salary*years)/70;
+
+ box.innerHTML=`
+ <div class="result">
+ <div class="total">
+ ₹${pension.toLocaleString("en-IN",{maximumFractionDigits:2})}
+ </div>
+ <b>மதிப்பிடப்பட்ட மாதாந்திர Pension</b><br>
+ Pensionable Salary: ₹${salary.toLocaleString("en-IN")}<br>
+ Pensionable Service: ${years} ஆண்டுகள்<br>
+ Formula: ${salary} × ${years} ÷ 70<br>
+ <b>${years>=10?"10 ஆண்டு சேவை நிபந்தனையை அடைகிறது":"10 ஆண்டு சேவை நிபந்தனை இன்னும் பூர்த்தியாகவில்லை"}</b>
+ </div>`;
 }
 
-function openPF(){
- window.open(
- "https://passbook.epfindia.gov.in/",
- "_blank","noopener"
- );
+// PF CALCULATOR
+function calculatePF(){
+
+ const e=Number(document.getElementById("employee").value)||0;
+ const r=Number(document.getElementById("employer").value)||0;
+
+ if(e<0||r<0){
+  alert("சரியான தொகை உள்ளிடவும்");
+  return;
+ }
+
+ document.getElementById("pfResult").innerText=
+ "₹"+(e+r).toLocaleString("en-IN");
 }
 
-function openClaim(){
- window.open(
- "https://passbook.epfindia.gov.in/MemberPassBook/Login",
- "_blank","noopener"
- );
-}
-
+// CLAIM STORAGE
 function getClaims(){
  try{
   return JSON.parse(localStorage.getItem("vrp_claims")||"[]");
@@ -156,9 +239,15 @@ function getClaims(){
  }
 }
 
-function addClaim(){
+function saveClaims(data){
+ localStorage.setItem("vrp_claims",JSON.stringify(data));
+}
+
+async function saveClaim(){
+
  const type=document.getElementById("claimType").value;
  const date=document.getElementById("claimDate").value;
+ const ref=document.getElementById("claimRef").value.trim();
  const status=document.getElementById("claimStatus").value;
 
  if(!date){
@@ -166,52 +255,182 @@ function addClaim(){
   return;
  }
 
+ if(new Date(date+"T00:00:00")>new Date()){
+  alert("எதிர்கால தேதியைத் தேர்வு செய்ய வேண்டாம்");
+  return;
+ }
+
+ const now=Date.now();
+
+ const claim={
+  id:now,
+  type,
+  date,
+  ref,
+  status,
+  reminderAt:now+(2*24*60*60*1000),
+  reminded:false,
+  answer:""
+ };
+
  const claims=getClaims();
+ claims.push(claim);
+ saveClaims(claims);
 
- claims.push({
-  id:Date.now(),
-  type:type,
-  date:date,
-  status:status
- });
+ if("Notification" in window &&
+ Notification.permission==="default"){
+  try{
+   await Notification.requestPermission();
+  }catch(e){}
+ }
 
- localStorage.setItem("vrp_claims",JSON.stringify(claims));
+ document.getElementById("claimRef").value="";
+ document.getElementById("claimDate").value="";
+
  showClaims();
- alert("Claim விவரம் சேமிக்கப்பட்டது");
+
+ alert("Claim சேமிக்கப்பட்டது. 2 நாள் Reminder அமைக்கப்பட்டது.");
 }
 
-function deleteClaim(id){
- const claims=getClaims().filter(c=>c.id!==id);
- localStorage.setItem("vrp_claims",JSON.stringify(claims));
- showClaims();
-}
-
+// DISPLAY HISTORY
 function showClaims(){
+
  const box=document.getElementById("claims");
- box.innerHTML="";
+ box.replaceChildren();
 
  getClaims().slice().reverse().forEach(c=>{
+
   const item=document.createElement("div");
   item.className="item";
 
   const title=document.createElement("b");
   title.textContent=c.type;
 
-  const info=document.createElement("p");
-  info.textContent="Date: "+c.date+" | Status: "+c.status;
+  const info=document.createElement("div");
+  info.textContent=
+  "Date: "+c.date+" | Status: "+c.status;
+
+  const answer=document.createElement("div");
+  answer.textContent=c.answer?
+  "உங்கள் பதில்: "+c.answer:"Reminder: Pending";
+
+  const edit=document.createElement("button");
+  edit.className="edit";
+  edit.textContent="Update Status";
+  edit.onclick=()=>updateClaim(c.id);
 
   const del=document.createElement("button");
   del.className="delete";
   del.textContent="Delete";
   del.onclick=()=>deleteClaim(c.id);
 
-  item.append(title,info,del);
+  item.append(title,info,answer,edit,del);
   box.appendChild(item);
  });
 }
 
-showClaims();
-</script>
+// UPDATE CLAIM STATUS
+function updateClaim(id){
 
+ const claims=getClaims();
+ const c=claims.find(x=>x.id===id);
+
+ if(!c)return;
+
+ const status=prompt(
+ "புதிய Status:\nSubmitted / Under Process / Approved / Settled / Rejected",
+ c.status
+ );
+
+ if(status===null)return;
+
+ const allowed=["Submitted","Under Process","Approved","Settled","Rejected"];
+
+ if(!allowed.includes(status)){
+  alert("சரியான Status தேர்வு செய்யவும்");
+  return;
+ }
+
+ c.status=status;
+ saveClaims(claims);
+ showClaims();
+}
+
+// DELETE CLAIM
+function deleteClaim(id){
+ if(!confirm("இந்த Claim பதிவை நீக்கவா?"))return;
+
+ saveClaims(getClaims().filter(c=>c.id!==id));
+ showClaims();
+}
+
+// OPEN OFFICIAL WEBSITE
+function openPage(url){
+ window.open(url,"_blank","noopener");
+}
+
+// TWO DAY REMINDER
+async function checkReminders(){
+
+ const claims=getClaims();
+ const now=Date.now();
+ let changed=false;
+
+ for(const c of claims){
+
+  if(c.reminded||c.answer||now<c.reminderAt)continue;
+
+  if(c.status==="Settled"||c.status==="Rejected"){
+   c.reminded=true;
+   changed=true;
+   continue;
+  }
+
+  const message=
+  "உங்கள் "+c.type+" Claim கிடைத்துவிட்டதா?";
+
+  if("Notification" in window &&
+     Notification.permission==="granted"){
+
+   try{
+    const reg=await navigator.serviceWorker.ready;
+
+    await reg.showNotification("VRPAIData - Claim Reminder",{
+     body:message,
+     icon:"./icon.svg",
+     tag:"claim-"+c.id,
+     data:{claimId:c.id}
+    });
+   }catch(e){
+    alert(message);
+   }
+
+  }else{
+   alert(message+"\n\nClaim History-ல் பதிலைப் பதிவு செய்யவும்.");
+  }
+
+  c.reminded=true;
+  changed=true;
+
+  const answer=confirm(
+   message+"\n\nClaim கிடைத்துவிட்டதா?\nOK = Yes\nCancel = No"
+  );
+
+  c.answer=answer?"Yes":"No";
+
+  if(!answer){
+   c.reminderAt=now+(24*60*60*1000);
+   c.reminded=false;
+  }
+ }
+
+ if(changed)saveClaims(claims);
+ showClaims();
+}
+
+showClaims();
+checkReminders();
+
+</script>
 </body>
 </html>
