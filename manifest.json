@@ -1,18 +1,21 @@
 
 {
-  "name": "EPFO Smart Assistant",
-  "short_name": "EPFO Smart",
+  "id": "./",
+  "name": "EPFO Smart Assistant - VRPAIData",
+  "short_name": "VRPAIData",
   "description": "EPFO Member Services Dashboard",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#f1f5fb",
   "theme_color": "#123b75",
   "icons": [
-  {
-    "src": "icon.svg",
-    "sizes": "any",
-    "type": "image/svg+xml",
-    "purpose": "any"
-  }
-]
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
