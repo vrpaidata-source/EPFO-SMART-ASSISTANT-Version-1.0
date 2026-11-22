@@ -1,0 +1,217 @@
+
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#123b75">
+<title>PF Tracker - VRPAIData</title>
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;background:#f1f5fb;
+ font-family:Arial,sans-serif;color:#173b70;
+}
+header{
+ background:linear-gradient(135deg,#123b75,#1976d2);
+ color:white;padding:22px;border-radius:0 0 22px 22px;
+}
+main{padding:16px;max-width:600px;margin:auto}
+.card{
+ background:white;padding:18px;margin:14px 0;
+ border-radius:16px;box-shadow:0 3px 12px #0001;
+}
+h2{font-size:19px}
+label{display:block;margin:12px 0 6px;font-size:13px}
+input,select{
+ width:100%;padding:13px;border:1px solid #ccd6e4;
+ border-radius:9px;font-size:15px;background:white;
+}
+button{
+ width:100%;padding:14px;border:0;border-radius:10px;
+ background:#1769c2;color:white;font-size:15px;
+ margin-top:14px;
+}
+.total{
+ font-size:27px;font-weight:bold;color:#16834a;
+ text-align:center;padding:15px;
+}
+.small{font-size:12px;color:#68758a;line-height:1.6}
+.item{
+ background:#f1f5fb;padding:12px;border-radius:10px;
+ margin-top:10px;font-size:14px;
+}
+.delete{background:#b52d35;padding:8px;margin-top:8px}
+a{color:#1769c2}
+</style>
+</head>
+<body>
+
+<header>
+<h2>💰 VRPAIData – PF TRACKER</h2>
+<p>PF Balance & Claim Status</p>
+</header>
+
+<main>
+
+<div class="card">
+<h2>📊 PF Balance Tracker</h2>
+
+<label>Employee Share (₹)</label>
+<input type="number" id="employee" min="0" placeholder="உதா: 25000">
+
+<label>Employer Share (₹)</label>
+<input type="number" id="employer" min="0" placeholder="உதா: 12000">
+
+<label>Pension Share (₹)</label>
+<input type="number" id="pension" min="0" placeholder="உதா: 8000">
+
+<button onclick="calculate()">Calculate PF Balance</button>
+
+<div class="total" id="total">₹0.00</div>
+<p class="small">
+இது நீங்கள் உள்ளிடும் தொகைகளின் கணக்கு மட்டுமே.
+உண்மையான PF Balance-ஐ EPFO Passbook-ல் சரிபார்க்கவும்.
+</p>
+
+</div>
+
+<div class="card">
+<h2>📘 Official PF Passbook</h2>
+<p class="small">உங்கள் உண்மையான PF விவரங்களை அதிகாரப்பூர்வ EPFO தளத்தில் பார்க்கவும்.</p>
+<button onclick="openPF()">Open EPFO Passbook</button>
+</div>
+
+<div class="card">
+<h2>📋 Claim Status Tracker</h2>
+
+<label>Claim Type</label>
+<select id="claimType">
+<option>PF Withdrawal</option>
+<option>PF Advance</option>
+<option>PF Transfer</option>
+<option>Pension Claim</option>
+</select>
+
+<label>Application Date</label>
+<input type="date" id="claimDate">
+
+<label>Current Status</label>
+<select id="claimStatus">
+<option>Submitted</option>
+<option>Under Process</option>
+<option>Approved</option>
+<option>Settled</option>
+<option>Rejected</option>
+</select>
+
+<button onclick="addClaim()">Save Claim Status</button>
+
+<div id="claims"></div>
+
+<button onclick="openClaim()">Check Official Claim Status</button>
+</div>
+
+<p class="small">
+🔐 பாதுகாப்பு: UAN, Password, OTP, Aadhaar அல்லது Bank விவரங்களை இங்கு உள்ளிட வேண்டாம். Tracker விவரங்கள் இந்த Browser-ன் Local Storage-ல் மட்டும் சேமிக்கப்படும். பகிரப்பட்ட மொபைலில் இதைப் பயன்படுத்த வேண்டாம்.
+</p>
+
+</main>
+
+<script>
+function calculate(){
+ const e=Number(document.getElementById("employee").value)||0;
+ const r=Number(document.getElementById("employer").value)||0;
+ const p=Number(document.getElementById("pension").value)||0;
+
+ if(e<0||r<0||p<0){
+  alert("சரியான தொகையை உள்ளிடவும்");
+  return;
+ }
+
+ const total=e+r+p;
+ document.getElementById("total").innerText=
+ "₹"+total.toLocaleString("en-IN",{minimumFractionDigits:2});
+}
+
+function openPF(){
+ window.open(
+ "https://passbook.epfindia.gov.in/",
+ "_blank","noopener"
+ );
+}
+
+function openClaim(){
+ window.open(
+ "https://passbook.epfindia.gov.in/MemberPassBook/Login",
+ "_blank","noopener"
+ );
+}
+
+function getClaims(){
+ try{
+  return JSON.parse(localStorage.getItem("vrp_claims")||"[]");
+ }catch(e){
+  return [];
+ }
+}
+
+function addClaim(){
+ const type=document.getElementById("claimType").value;
+ const date=document.getElementById("claimDate").value;
+ const status=document.getElementById("claimStatus").value;
+
+ if(!date){
+  alert("Application Date தேர்வு செய்யவும்");
+  return;
+ }
+
+ const claims=getClaims();
+
+ claims.push({
+  id:Date.now(),
+  type:type,
+  date:date,
+  status:status
+ });
+
+ localStorage.setItem("vrp_claims",JSON.stringify(claims));
+ showClaims();
+ alert("Claim விவரம் சேமிக்கப்பட்டது");
+}
+
+function deleteClaim(id){
+ const claims=getClaims().filter(c=>c.id!==id);
+ localStorage.setItem("vrp_claims",JSON.stringify(claims));
+ showClaims();
+}
+
+function showClaims(){
+ const box=document.getElementById("claims");
+ box.innerHTML="";
+
+ getClaims().slice().reverse().forEach(c=>{
+  const item=document.createElement("div");
+  item.className="item";
+
+  const title=document.createElement("b");
+  title.textContent=c.type;
+
+  const info=document.createElement("p");
+  info.textContent="Date: "+c.date+" | Status: "+c.status;
+
+  const del=document.createElement("button");
+  del.className="delete";
+  del.textContent="Delete";
+  del.onclick=()=>deleteClaim(c.id);
+
+  item.append(title,info,del);
+  box.appendChild(item);
+ });
+}
+
+showClaims();
+</script>
+
+</body>
+</html>
